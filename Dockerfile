@@ -1,35 +1,67 @@
 FROM php:8.3-apache
 
-# Install dependencies
+# -----------------------------
+# System dependencies
+# -----------------------------
 RUN apt-get update && apt-get install -y \
-    unzip zip \
     libzip-dev \
+    zip \
+    unzip \
+    git \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
     libicu-dev \
-    default-mysql-client
+    libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# PHP extensions
+# -----------------------------
+# PHP extensions (required by EspoCRM)
+# -----------------------------
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
-        pdo_mysql mysqli gd zip intl
+    pdo \
+    pdo_mysql \
+    mysqli \
+    gd \
+    zip \
+    intl \
+    opcache
 
-RUN a2enmod rewrite
+# -----------------------------
+# Apache configuration
+# -----------------------------
+RUN a2enmod rewrite headers expires
 
-WORKDIR /var/www/html
-COPY . /var/www/html
+# Fix: More than one MPM loaded
+RUN a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html
+# Railway requires dynamic port
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf \
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Add runtime entrypoint fix
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# -----------------------------
+# Copy application
+# -----------------------------
+COPY . /var/www/html/
 
-# Railway port
-RUN sed -ri -e 's!80!${PORT}!g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
+# -----------------------------
+# EspoCRM permissions FIX
+# -----------------------------
+RUN mkdir -p \
+    /var/www/html/data/cache \
+    /var/www/html/data/upload \
+    /var/www/html/data/logs \
+    /var/www/html/custom
 
-EXPOSE 8080
+RUN chown -R www-data:www-data /var/www/html \
+    && find /var/www/html -type d -exec chmod 775 {} \; \
+    && find /var/www/html -type f -exec chmod 664 {} \;
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+# -----------------------------
+# Start Apache
+# -----------------------------
+CMD ["apache2-foreground"]
