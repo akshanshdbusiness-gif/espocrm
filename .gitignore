@@ -58,6 +58,8 @@ data/cache/*
 data/upload/*
 data/attachments/*
 client/custom/build/
+data/*
+!data/.gitkeep
 
 # -----------------------------
 # Database dumps
