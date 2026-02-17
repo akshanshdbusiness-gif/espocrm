@@ -1,0 +1,73 @@
+# -----------------------------
+# OS / Editor
+# -----------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# -----------------------------
+# Docker runtime data
+# -----------------------------
+data/
+mysql/
+db_data/
+*.pid
+
+# -----------------------------
+# PHP dependencies
+# -----------------------------
+vendor/
+composer.lock
+
+# -----------------------------
+# Node (if frontend exists)
+# -----------------------------
+node_modules/
+npm-debug.log
+yarn.lock
+
+# -----------------------------
+# Env / secrets
+# -----------------------------
+.env
+.env.local
+.env.production
+
+# -----------------------------
+# Cache & temp files
+# -----------------------------
+cache/
+tmp/
+*.cache
+*.tmp
+
+# -----------------------------
+# Uploads / user generated content
+# -----------------------------
+uploads/
+attachments/
+files/
+
+# -----------------------------
+# EspoCRM specific
+# -----------------------------
+data/config.php
+data/cache/*
+data/upload/*
+data/attachments/*
+client/custom/build/
+
+# -----------------------------
+# Database dumps
+# -----------------------------
+*.sql
+*.dump
+*.bak
+
+# -----------------------------
+# Build artifacts
+# -----------------------------
+dist/
+build/
