@@ -1,19 +1,38 @@
-FROM php:8.3-apache
+FROM php:8.2-apache
 
+# Install system packages required for gd & zip
 RUN apt-get update && apt-get install -y \
-    libzip-dev unzip git \
-    && docker-php-ext-install pdo pdo_mysql
+    libzip-dev \
+    zip \
+    unzip \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
+    libicu-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY . /var/www/html/
+# Configure GD properly
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 
-# FIX PERMISSIONS (required for EspoCRM)
-RUN chown -R www-data:www-data /var/www/html \
-    && find /var/www/html -type d -exec chmod 775 {} \; \
-    && find /var/www/html -type f -exec chmod 664 {} \;
+# Install PHP extensions
+RUN docker-php-ext-install \
+    gd \
+    zip \
+    pdo \
+    pdo_mysql \
+    mysqli \
+    intl \
+    mbstring \
+    exif \
+    opcache
 
-COPY railway-start.sh /usr/local/bin/railway-start.sh
-RUN chmod +x /usr/local/bin/railway-start.sh
+# Enable Apache rewrite
+RUN a2enmod rewrite
 
-EXPOSE 8080
-
-CMD ["/usr/local/bin/railway-start.sh"]
+WORKDIR /var/www/html
+COPY . /var/www/html
