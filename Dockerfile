@@ -1,6 +1,5 @@
 FROM php:8.2-apache
 
-# Install system packages required for gd & zip
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
@@ -16,10 +15,8 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure GD properly
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 
-# Install PHP extensions
 RUN docker-php-ext-install \
     gd \
     zip \
@@ -31,8 +28,8 @@ RUN docker-php-ext-install \
     exif \
     opcache
 
-# Enable Apache rewrite
 RUN a2enmod rewrite
+RUN a2dismod mpm_event && a2enmod mpm_prefork
 
 WORKDIR /var/www/html
 COPY . /var/www/html
