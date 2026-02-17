@@ -1,19 +1,25 @@
 FROM php:8.3-apache
 
+# Install system libraries required by PHP extensions
 RUN apt-get update && apt-get install -y \
-    libzip-dev unzip git \
-    && docker-php-ext-install pdo pdo_mysql
+    libzip-dev \
+    unzip \
+    git \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libicu-dev \
+    libxml2-dev \
+    libonig-dev \
+    libcurl4-openssl-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        zip \
+        gd \
+        intl \
+        opcache
 
-COPY . /var/www/html/
-
-# FIX PERMISSIONS (required for EspoCRM)
-RUN chown -R www-data:www-data /var/www/html \
-    && find /var/www/html -type d -exec chmod 775 {} \; \
-    && find /var/www/html -type f -exec chmod 664 {} \;
-
-COPY railway-start.sh /usr/local/bin/railway-start.sh
-RUN chmod +x /usr/local/bin/railway-start.sh
-
-EXPOSE 8080
-
-CMD ["/usr/local/bin/railway-start.sh"]
+# enable apache rewrite
+RUN a2enmod rewrite
