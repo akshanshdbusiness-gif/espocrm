@@ -4,18 +4,20 @@ set -e
 APP_DIR=/var/www/html
 
 echo "Fixing Apache MPM..."
+rm -f /etc/apache2/mods-enabled/mpm_event.* || true
+rm -f /etc/apache2/mods-enabled/mpm_worker.* || true
+a2enmod mpm_prefork rewrite headers expires >/dev/null 2>&1
 
-# hard remove conflicting MPMs (Railway-safe fix)
-rm -f /etc/apache2/mods-enabled/mpm_event.load || true
-rm -f /etc/apache2/mods-enabled/mpm_event.conf || true
-rm -f /etc/apache2/mods-enabled/mpm_worker.load || true
-rm -f /etc/apache2/mods-enabled/mpm_worker.conf || true
+# Railway dynamic port fix
+echo "Configuring Apache to use Railway PORT: $PORT"
+sed -i "s/Listen 80/Listen ${PORT}/g" /etc/apache2/ports.conf
+sed -i "s/:80/:${PORT}/g" /etc/apache2/sites-enabled/000-default.conf
 
-# ensure prefork exists
-a2enmod mpm_prefork >/dev/null 2>&1 || true
-a2enmod rewrite headers expires >/dev/null 2>&1 || true
+# silence apache warning
+echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf
+a2enconf servername >/dev/null 2>&1
 
-# Install app only once
+# install once
 if [ ! -f "$APP_DIR/data/config.php" ]; then
     echo "First run: copying EspoCRM files into volume..."
     cp -r /usr/src/espo/. $APP_DIR/
