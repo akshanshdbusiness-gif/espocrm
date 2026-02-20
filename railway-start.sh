@@ -35,7 +35,7 @@ else
 fi
 
 ########################################
-# Fix Railway volume permissions
+# Fix Railway volume permissions..
 ########################################
 echo "Fixing volume permissions..."
 mkdir -p $APP_DIR/data $APP_DIR/upload $APP_DIR/custom
